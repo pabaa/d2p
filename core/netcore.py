@@ -1,5 +1,6 @@
 from .dtn import DTNTransport
 from .p2p import P2PTransport
+from .anon import AnonTransport
 
 from . import netcorebase
 
@@ -11,7 +12,8 @@ class NetworkCore(netcorebase.AbstractNetCore):
         super(NetworkCore, self).__init__(projectManager)
         self._transports = [
             DTNTransport(io_loop, self, cfg),
-            P2PTransport(io_loop, self, cfg)
+            P2PTransport(io_loop, self, cfg),
+            AnonTransport(io_loop, self, cfg, 'TOR')
         ]
 
     @property
@@ -24,9 +26,16 @@ class NetworkCore(netcorebase.AbstractNetCore):
         assert 'dtn' in res.transport_id
         return res
 
+    @property
     def ui_p2pTransport(self):
         res = self._transports[1]
         assert 'p2p' in res.transport_id
+        return res
+
+    @property
+    def ui_anonTransport(self):
+        res = self._transports[2]
+        assert 'anon' in res.transport_id
         return res
 
     def project_onLoad(self, project):

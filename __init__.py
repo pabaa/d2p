@@ -12,6 +12,8 @@ import tornado.ioloop
 from . import wui
 from . import core
 
+import anon
+
 def readOpts():
     parser = optparse.OptionParser(description='Censorship-resistant distributed collaboration')
     parser.add_option('-A', '--autoreload', action='store_true', default=None, dest='autoreload', help='Reload when a file gets changed')
