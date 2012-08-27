@@ -1,6 +1,7 @@
 
 
-import Client
+from anon import Client
+from anon import Application
 
 DEFAULT_ANON = 'TOR'
 
@@ -33,12 +34,12 @@ class AnonTransport(Client.Client):
         Client.Client.__init__(self, io_loop, anonymizer)
 
     def ANON_handle_newconnection(self, channel, destination_string):
-        def Client.Client.ANON_handle_newconnection(channel, destination_string)
+        Client.Client.ANON_handle_newconnection(channel, destination_string)
 
     def ANON_handle_connect_done(self, channel, dest):
         Client.Client.ANON_handle_connect_done(self, channel, dest)
 
-    def ANON_handle_newmessage_noJSON_RPC(self, channel, message)
+    def ANON_handle_newmessage_noJSON_RPC(self, channel, message):
         Client.Client.ANON_handle_newmessage_noJSON_RPC(channel, message)
 
     @property
