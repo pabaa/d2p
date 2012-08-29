@@ -20,6 +20,7 @@ class ManualBootstrap(object):
     bootstrap_type = 'manual'
     ui_bootstrap_name = 'Manual bootstrap'
 
+    # wofür getAdvertised ?
     def start(self, assignedId, io_loop, getAdvertised, onFind):
         """ Start running on the specified io_loop """
         self.assignedId = assignedId

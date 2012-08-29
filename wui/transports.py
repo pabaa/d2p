@@ -75,7 +75,7 @@ class DTNEndpointHandler(TemplatingHandler):
 
 class P2PHandler(TemplatingHandler):
     def get(self): # List all P2P endpoints and bootstraps
-        p2pTransport = self.application.netCore.ui_p2pTransport()
+        p2pTransport = self.application.netCore.ui_p2pTransport
         bootstraps = [{
             'id': bs.assignedId,
             'name': bs.ui_bootstrap_name,
@@ -103,7 +103,7 @@ class P2PHandler(TemplatingHandler):
 
 class P2PBootstrapHandler(TemplatingHandler): # Add and configure bootstraps
     def post(self):
-        p2pTransport = self.application.netCore.ui_p2pTransport()
+        p2pTransport = self.application.netCore.ui_p2pTransport
 
         bsType = self.get_argument('bsType', None)
         assert bsType
@@ -117,7 +117,7 @@ class P2PManualBootstrapHandler(TemplatingHandler): # Add and configure a manual
     def post(self, bsId, entry=None):
         assert bsId
         bsId = int(bsId)
-        p2pTransport = self.application.netCore.ui_p2pTransport()
+        p2pTransport = self.application.netCore.ui_p2pTransport
         bs = next(bs for bs in p2pTransport.ui_bootstraps if bs.assignedId == bsId)
         assert bs.bootstrap_type == 'manual'
 
