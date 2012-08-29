@@ -384,6 +384,20 @@ ui_toggleControlPanel: function() {
     });
     controlPanel.append(button);
 
+    button = $('<div class="commandbutton button_anon"></div>');
+    button.text(d2p.i18n('AnonP2P (via TOR)'));
+    button.click(function() {
+        d2p.content_goto('/_transports/anon/tor');
+    });
+    controlPanel.append(button);
+
+    button = $('<div class="commandbutton button_anon_tor"></div>');
+    button.text(d2p.i18n('AnonP2P (via I2P)'));
+    button.click(function() {
+        d2p.content_goto('/_transports/anon/i2p');
+    });
+    controlPanel.append(button);
+
     button = $('<div class="commandbutton button_projectlist"></div>');
     button.text(d2p.i18n('Projects'));
     button.click(function() {

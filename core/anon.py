@@ -3,6 +3,8 @@
 from anon import Client
 from anon import Application
 
+from . import bootstrap
+
 DEFAULT_ANON = 'TOR'
 
 
@@ -30,19 +32,28 @@ class AnonTransport(Client.Client):
         self.netCore = netCore
         self._io_loop = io_loop
         self._endpoints = []
+        self._bootstraps = []
         self._bootstraps_nextId = 0
-        Client.Client.__init__(self, io_loop, anonymizer)        
+        Client.Client.__init__(self, io_loop, anonymizer)      
+
+        p2pCfg = cfg.get('anon', {})
+        bootstrapCfg = cfg.get('bootstraps', [{
+            'bsType': 'manual',
+        }])
+        for bcfg in bootstrapCfg:
+            bs = bootstrap.create(bcfg)
+            self._addBootstrap(bs)  
 
     def ANON_handle_newmessage_noJSON_RPC(self, channel, message):
-        Client.Client.ANON_handle_newmessage_noJSON_RPC(channel, message)
+        Client.Client.ANON_handle_newmessage_noJSON_RPC(self, channel, message)
         for e in self._endpoints:
-            if e.channel = channel:
+            if e.channel == channel:
                 e.read(message)
                 return
         print('Something went terribly wrong.')
 
     def ANON_handle_newconnection(self, channel, destination_string):
-        Client.Client.ANON_handle_newconnection(channel, destination_string)
+        Client.Client.ANON_handle_newconnection(self, channel, destination_string)
         ep = AnonEndpoint(self, channel, destination_string)
         self._endpoints.append(ep)
         self.netCore.transport_onNewEndpoint(self, ep)
@@ -72,14 +83,14 @@ class AnonTransport(Client.Client):
     def _connectTo(self, addr):
         self.ANON_connect(addr)
 
-    def ANON_handle_connect_done(self, chan, dest)
-        Client.Client.ANON_handle_connect_done(chan, dest)
+    def ANON_handle_connect_done(self, chan, dest):
+        Client.Client.ANON_handle_connect_done(self, chan, dest)
         ep = AnonEndpoint(self, chan, dest)
         self._endpoints.append(ep)
         self.netCore.transport_onNewEndpoint(self, ep)
 
-    def ANON_handle_connect_failed(self, chan, dest):
-        Client.Client.ANON_handle_connect_failed(chan, dest)
+    def ANON_handle_connect_failed(self, dest):
+        Client.Client.ANON_handle_connect_failed(self, dest)
 
     # todo, was passiert hier??
     def _getBootstrapEntries(self):

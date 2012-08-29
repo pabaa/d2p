@@ -13,6 +13,7 @@ class NetworkCore(netcorebase.AbstractNetCore):
         self._transports = [
             DTNTransport(io_loop, self, cfg),
             P2PTransport(io_loop, self, cfg),
+            AnonTransport(io_loop, self, cfg, 'I2P'),
             AnonTransport(io_loop, self, cfg, 'TOR')
         ]
 
@@ -33,9 +34,17 @@ class NetworkCore(netcorebase.AbstractNetCore):
         return res
 
     @property
-    def ui_anonTransport(self):
+    def ui_i2pTransport(self):
         res = self._transports[2]
         assert 'anon' in res.transport_id
+        assert 'I2P' in res.transport_id
+        return res
+
+    @property
+    def ui_torTransport(self):
+        res = self._transports[3]
+        assert 'anon' in res.transport_id
+        assert 'TOR' in res.transport_id
         return res
 
     def project_onLoad(self, project):

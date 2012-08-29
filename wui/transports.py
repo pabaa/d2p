@@ -128,3 +128,60 @@ class P2PManualBootstrapHandler(TemplatingHandler): # Add and configure a manual
         bs.ui_addEntry(bse)
         self.write({'_status': added})
 
+################################################################################
+
+class AnonHandler(TemplatingHandler):
+    def get(self, anontype): # List all AnonP2P endpoints and bootstraps
+        anonTransport = getattr(self.application.netCore, 'ui_' + anontype + 'Transport')
+        bootstraps = [{
+            'id': bs.assignedId,
+            'name': bs.ui_bootstrap_name,
+            'type': bs.bootstrap_type,
+            'entries': [{
+                'transportId': e.transportId,
+                'addr': e.addr,
+                'port': e.port,
+            } for e in bs.ui_entries]
+        } for bs in anonTransport.ui_bootstraps]
+        endpoints = [{
+            'remoteAddr': ep.ui_remoteAddrStr,
+        } for ep in anonTransport.endpoints]
+
+        dct = {
+            'bootstraps': bootstraps,
+            'endpoints': endpoints,
+            'serverPort': anonTransport.ui_serverDestination,
+            'title': 'AnonP2P transport (via ' + anontype.upper() + ')',
+            'template': 'anonp2p_overview',
+            'scripts': [{'src': '/static/transport-anon.js'}]
+        }
+        self.render(dct)
+
+
+class AnonBootstrapHandler(TemplatingHandler): # Add and configure bootstraps
+    def post(self, anontype):
+        anonTransport = getattr(self.application.netCore, 'ui_' + anontype + 'Transport')
+
+        bsType = self.get_argument('bsType', None)
+        assert bsType
+        bs = d2p.core.bootstrap.create({'bsType': bsType})
+
+        anonTransport.ui_addBootstrap(bs)
+
+        self.write({'_status': 'added'})
+
+class AnonManualBootstrapHandler(TemplatingHandler): # Add and configure a manual bootstrap
+    def post(self, anontype, bsId, entry=None):
+        assert bsId
+        bsId = int(bsId)
+        anonTransport = getattr(self.application.netCore, 'ui_' + anontype + 'Transport')
+        bs = next(bs for bs in anonTransport.ui_bootstraps if bs.assignedId == bsId)
+        assert bs.bootstrap_type == 'manual'
+
+        args = [self.get_argument('transportId'), self.get_argument('addr'), int(self.get_argument('port'))]
+        assert all(args)
+        bse = d2p.core.bootstrap.BootstrapEntry(*args)
+
+        bs.ui_addEntry(bse)
+        self.write({'_status': added})
+
