@@ -126,7 +126,7 @@ class P2PManualBootstrapHandler(TemplatingHandler): # Add and configure a manual
         bse = d2p.core.bootstrap.BootstrapEntry(*args)
 
         bs.ui_addEntry(bse)
-        self.write({'_status': added})
+        self.write({'_status': 'added'})
 
 ################################################################################
 
@@ -150,6 +150,7 @@ class AnonHandler(TemplatingHandler):
         dct = {
             'bootstraps': bootstraps,
             'endpoints': endpoints,
+            'anontype' : anontype,
             'serverPort': anonTransport.ui_serverDestination,
             'title': 'AnonP2P transport (via ' + anontype.upper() + ')',
             'template': 'anonp2p_overview',
@@ -172,16 +173,15 @@ class AnonBootstrapHandler(TemplatingHandler): # Add and configure bootstraps
 
 class AnonManualBootstrapHandler(TemplatingHandler): # Add and configure a manual bootstrap
     def post(self, anontype, bsId, entry=None):
-        assert bsId
         bsId = int(bsId)
         anonTransport = getattr(self.application.netCore, 'ui_' + anontype + 'Transport')
         bs = next(bs for bs in anonTransport.ui_bootstraps if bs.assignedId == bsId)
         assert bs.bootstrap_type == 'manual'
 
-        args = [self.get_argument('transportId'), self.get_argument('addr'), int(self.get_argument('port'))]
-        assert all(args)
+        args = [self.get_argument('transportId'), self.get_argument('addr')]
+        args.append('')
         bse = d2p.core.bootstrap.BootstrapEntry(*args)
 
         bs.ui_addEntry(bse)
-        self.write({'_status': added})
+        self.write({'_status': 'added'})
 

@@ -28,7 +28,7 @@ class AnonEndpoint(object):
 
 class AnonTransport(Client.Client):
     def __init__(self, io_loop, netCore, cfg, anonymizer=DEFAULT_ANON):
-        self.transport_id = '-'.join(['anon' , anonymizer])
+        self.transport_id = 'anon-' + anonymizer.lower()
         self.netCore = netCore
         self._io_loop = io_loop
         self._endpoints = []
@@ -74,7 +74,7 @@ class AnonTransport(Client.Client):
 
     ui_addBootstrap = _addBootstrap
 
-    def _onBootstrapFoundEntry(self, bse):
+    def _onBootstrapFoundEntry(self, bse):        
         if bse.transportId != self.transport_id:
             return # We don't support that type of connections
         # We're just connecting to anything we can find

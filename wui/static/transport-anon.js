@@ -1,11 +1,13 @@
 $(function() {
 
+var anontype = $('#anontype').attr('data-type')
+
 $('#anon_bootstrap_addform').submit(function() {
     var bsType = $('#anon_bootstrap_type').val();
     var q = {'bsType': bsType};
-    var url = '/_transports/p2p/bootstrap/';
+    var url = '/_transports/anon/' + anontype + '/bootstrap/';
     d2p.sendQuery(url, q, function() {
-        d2p.content_goto('/_transports/p2p/');
+        d2p.content_goto('/_transports/anon/' + anontype);
     });
 });
 
@@ -15,7 +17,7 @@ $('.anon_bootstrap[data-bootstrap-type="manual"]').each(function(i, el) {
     var entryTable = bsEl.find('.anon_bootstrap_entries');
     var newRow = $('<tr class="anon_bootstrap_newRow">');
 
-    var transportIds = ['anon-tor/i2p'];
+    var transportIds = ['anon-' + anontype];
     var inputTransportIds = $('<select>');
     _.each(transportIds, function(ti) {
         var opt = $('<option>');
@@ -42,11 +44,12 @@ $('.anon_bootstrap[data-bootstrap-type="manual"]').each(function(i, el) {
         var entry = {
             'transportId': inputTransportIds.val(),
             'addr': inputAddr.val(),
+            'port': ''
         };
 
-        var url = '/_transports/p2p/bootstrap/' + bsEl.attr('data-bootstrap-id') + '/manual/entries/';
+        var url = '/_transports/anon/' + anontype + '/bootstrap/' + bsEl.attr('data-bootstrap-id') + '/manual/entries/';
         d2p.sendQuery(url, entry, function() {
-            d2p.content_goto('/_transports/p2p/');
+            d2p.content_goto('/_transports/anon/' + anontype);
         });
     });
     
