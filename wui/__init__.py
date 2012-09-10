@@ -3,6 +3,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.httpserver
 import tornado.netutil
+import socket
 
 from .routes import routes
 
@@ -26,8 +27,14 @@ class WebUI(object):
         else:
             port = portSpec
         for a in addrsIt:
-            s = tornado.netutil.bind_sockets(port, a)
-            sockets.extend(s)
+            s = None
+            while s == None:
+                try:
+                    s = tornado.netutil.bind_sockets(port, a)
+                    sockets.extend(s)
+                except socket.error:
+                    port += 1
+            
         self._port = port
 
         hs = tornado.httpserver.HTTPServer(self._application, io_loop=io_loop)

@@ -46,11 +46,21 @@ class AnonTransport(Client.Client):
 
     def ANON_handle_newmessage_noJSON_RPC(self, channel, message):
         Client.Client.ANON_handle_newmessage_noJSON_RPC(self, channel, message)
-        for e in self._endpoints:
-            if e.channel == channel:
-                e.read(message)
+        self._io_loop.add_callback(self._handleNewmessage, channel, message, 1)
+
+    def _handleNewmessage(self, channel, message, to):
+        if to < 5:
+            ep = self._getEndPoint(channel)
+            if ep != None:
+                if isinstance(message, ''.__class__):
+                    message = message.encode('utf-8')
+                ep.read(message)
                 return
-        print('Something went terribly wrong.')
+            else:
+                self._io_loop.add_timeout(1, self._handleNewmessage, channel, message, to+1)
+        else:
+            print('Something went terribly wrong: ' + message + 'Channel: ' + str(channel) + ' Endpoints: ' + str(self._endpoints))
+            
 
     def ANON_handle_newconnection(self, channel, destination_string):
         Client.Client.ANON_handle_newconnection(self, channel, destination_string)
@@ -92,6 +102,24 @@ class AnonTransport(Client.Client):
     def ANON_handle_connect_failed(self, dest):
         Client.Client.ANON_handle_connect_failed(self, dest)
 
+    def ANON_handle_disconnected(self, channel, dest):
+        Client.Client.ANON_handle_disconnected(self, channel, dest)
+        ep = self._getEndPoint(channel, dest)
+        if ep != None:
+            self.onEndpointError(ep)
+
+    def _getEndPoint(self, channel, dest=None):
+        if dest == None:
+            for ep in self._endpoints:
+                print(str(ep.channel) + ' <> ' + str(channel) + ' ---- ' + str(ep.channel.__class__) + ' <> ' + str(channel.__class__))
+                if ep.channel == channel:
+                    return ep
+        else:
+            for ep in self._endpoints:
+                if ep.channel == channel and ep.addr == dest:
+                    return ep
+        return None
+
     # todo, was passiert hier??
     def _getBootstrapEntries(self):
         return [bootstrap.BootstrapEntry(self.transport_id, None, self._localPort)]
@@ -103,4 +131,7 @@ class AnonTransport(Client.Client):
     def project_onLoad(self, project):
         for e in self.endpoints:
             project.handleEndpoint(e)
+
+    def onEndpointError(self, ep):
+        pass
         

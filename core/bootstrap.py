@@ -42,3 +42,6 @@ class ManualBootstrap(object):
         self._entries.append(bse)
         self._onFind(bse)
 
+class BootstrapWithServer(object):
+    pass
+
