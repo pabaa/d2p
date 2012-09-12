@@ -1,4 +1,5 @@
-
+import functools
+import time
 
 from anon import Client
 from anon import Application
@@ -46,7 +47,8 @@ class AnonTransport(Client.Client):
 
     def ANON_handle_newmessage_noJSON_RPC(self, channel, message):
         Client.Client.ANON_handle_newmessage_noJSON_RPC(self, channel, message)
-        self._io_loop.add_callback(self._handleNewmessage, channel, message, 1)
+        callback = functools.partial(self._handleNewmessage, channel, message, 1)
+        self._io_loop.add_callback(callback)
 
     def _handleNewmessage(self, channel, message, to):
         if to < 5:
@@ -57,7 +59,8 @@ class AnonTransport(Client.Client):
                 ep.read(message)
                 return
             else:
-                self._io_loop.add_timeout(1, self._handleNewmessage, channel, message, to+1)
+                callback = functools.partial(self._handleNewmessage, channel, message, to+1)
+                self._io_loop.add_timeout(time.time()+5, callback)
         else:
             print('Something went terribly wrong: ' + message + 'Channel: ' + str(channel) + ' Endpoints: ' + str(self._endpoints))
             
@@ -109,14 +112,9 @@ class AnonTransport(Client.Client):
             self.onEndpointError(ep)
 
     def _getEndPoint(self, channel, dest=None):
-        if dest == None:
-            for ep in self._endpoints:
-                print(str(ep.channel) + ' <> ' + str(channel) + ' ---- ' + str(ep.channel.__class__) + ' <> ' + str(channel.__class__))
-                if ep.channel == channel:
-                    return ep
-        else:
-            for ep in self._endpoints:
-                if ep.channel == channel and ep.addr == dest:
+        for ep in self._endpoints:
+            if ep.channel == channel:
+                if dest == None or ep.addr == dest:
                     return ep
         return None
 
