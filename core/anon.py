@@ -28,14 +28,15 @@ class AnonEndpoint(object):
 
 
 class AnonTransport(Client.Client):
-    def __init__(self, io_loop, netCore, cfg, anonymizer=DEFAULT_ANON):
+    def __init__(self, io_loop, netCore, cfg, anonymizer=DEFAULT_ANON, debug=False):
+
         self.transport_id = 'anon-' + anonymizer.lower()
         self.netCore = netCore
         self._io_loop = io_loop
         self._endpoints = []
         self._bootstraps = []
         self._bootstraps_nextId = 0
-        Client.Client.__init__(self, io_loop, anonymizer)      
+        Client.Client.__init__(self, io_loop, anonymizer, debug)   
 
         p2pCfg = cfg.get('anon', {})
         bootstrapCfg = cfg.get('bootstraps', [{
@@ -44,11 +45,28 @@ class AnonTransport(Client.Client):
         for bcfg in bootstrapCfg:
             bs = bootstrap.create(bcfg)
             self._addBootstrap(bs)  
+        auto_bs = bootstrap.BootstrapWithServer(self.transport_id)
+        self._addBootstrap(auto_bs)  
 
     def ANON_handle_newmessage_noJSON_RPC(self, channel, message):
         Client.Client.ANON_handle_newmessage_noJSON_RPC(self, channel, message)
         callback = functools.partial(self._handleNewmessage, channel, message, 1)
         self._io_loop.add_callback(callback)
+
+    def ANON_handle_newmessage_response(self, channel, result, error, msg_id, request):
+        Application.Application.ANON_handle_newmessage_response(
+            self, channel, result, error, msg_id, request)
+        bs = self._getAutoBootstrap()
+        if request["method"] == "getPeerList":
+            if "PeerList" in result:
+                self.ow.out("Bootstrapping information received:\n", result)
+                for dest in result["PeerList"]:
+                    bs.addEntry(bootstrap.BootstrapEntry(self.transport_id, dest, ''))
+
+    def _getAutoBootstrap(self):
+        for bs in self._bootstraps:
+            if bs.bootstrap_type == 'server':
+                return bs
 
     def _handleNewmessage(self, channel, message, to):
         if to < 5:
@@ -79,15 +97,14 @@ class AnonTransport(Client.Client):
     def ui_bootstraps(self):
         return self._bootstraps
 
-    # todo?
     def _addBootstrap(self, bootstrap):
-        bootstrap.start(self._bootstraps_nextId, self._io_loop, self._getBootstrapEntries, self._onBootstrapFoundEntry)
+        bootstrap.start(self._bootstraps_nextId, self._io_loop, [], self._onBootstrapFoundEntry)
         self._bootstraps_nextId += 1
         self._bootstraps.append(bootstrap)
 
     ui_addBootstrap = _addBootstrap
 
-    def _onBootstrapFoundEntry(self, bse):        
+    def _onBootstrapFoundEntry(self, bse):    
         if bse.transportId != self.transport_id:
             return # We don't support that type of connections
         # We're just connecting to anything we can find
@@ -118,10 +135,6 @@ class AnonTransport(Client.Client):
                     return ep
         return None
 
-    # todo, was passiert hier??
-    def _getBootstrapEntries(self):
-        return [bootstrap.BootstrapEntry(self.transport_id, None, self._localPort)]
-
     @property
     def ui_serverDestination(self):
         return self.destination
@@ -131,5 +144,6 @@ class AnonTransport(Client.Client):
             project.handleEndpoint(e)
 
     def onEndpointError(self, ep):
-        pass
+        self._endpoints.remove(ep)
+        # TODO notify netCore about endpoint error
         
