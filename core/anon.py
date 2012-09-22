@@ -29,7 +29,6 @@ class AnonEndpoint(object):
 
 class AnonTransport(Client.Client):
     def __init__(self, io_loop, netCore, cfg, anonymizer=DEFAULT_ANON, debug=False):
-
         self.transport_id = 'anon-' + anonymizer.lower()
         self.netCore = netCore
         self._io_loop = io_loop
