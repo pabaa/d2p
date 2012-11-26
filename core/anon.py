@@ -106,6 +106,8 @@ class AnonTransport(Client.Client):
     def _onBootstrapFoundEntry(self, bse):    
         if bse.transportId != self.transport_id:
             return # We don't support that type of connections
+        if self.destination == bse.addr:
+            return # We don't connect to ourselves
         # We're just connecting to anything we can find
         self._connectTo(bse.addr)
 
